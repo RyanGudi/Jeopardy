@@ -10,6 +10,7 @@
                 <td v-for="(score, index) in row.scores" :key="index">{{ score }}</td>
             </tr> 
         </tbody>
+        <button type ="button" @click="fetchData">Button</button>
     </div>
 </template>
 
@@ -26,7 +27,18 @@
             };
         },
         methods: {
-
+            async fetchData() {
+                try {
+                    const apiUrl = 'https://opentdb.com/api.php?amount=4&type=boolean'
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    console.log(response);
+                } catch(error) {
+                    console.error('Error fetching data', error);
+                }
+            }
         }
     }
 </script>'
