@@ -5,14 +5,14 @@
 
 <script>
 import PlayerInfo from './components/PlayerInfo.vue';
-//import GameBoard from './components/GameBoard.vue';
+import GameBoard from './components/GameBoard.vue';
 
 
 export default {
   name: 'App',
   components: {
     PlayerInfo,
-    //GameBoard
+    GameBoard
   }
 }
 </script>
