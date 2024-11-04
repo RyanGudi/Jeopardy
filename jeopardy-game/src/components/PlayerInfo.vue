@@ -1,23 +1,24 @@
 <template>
-    <h1>Jeopardy</h1>
-    <div class="players-container">
-        <div class="playerCard">
-            <p>Player 1</p>
-            <h2>Score</h2>
-        </div>
-        <div class="playerCard">
-            <p>Player 2</p>
-            <h2>Score</h2>
-        </div>
-        <div class="playerCard">
-            <p>Player 3</p>
-            <h2>Score</h2>
+    <div>
+        <h1>Jeopardy</h1>
+        <div class="players-container">
+            <div class="playerCard" v-for="(player, index) in players" :key="index">
+                <p>{{ player.name }}</p>
+                <h2>{{ `$${player.score}` }}</h2>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
-    
+    export default {
+        props: {
+            players: {
+                type: Array,
+                required: true
+            }
+        }
+    }
 </script>
 
 <style>

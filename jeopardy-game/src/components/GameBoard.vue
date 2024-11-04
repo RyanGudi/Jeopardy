@@ -1,4 +1,8 @@
 <template>
+    <PlayerInfo 
+    :players="players"
+    />
+
     <div class="jeopardy-table-container">
         <div class="jeopardy-table">
             <thead>
@@ -9,7 +13,7 @@
             <tbody>
                 <tr v-for="rowIndex in 3" :key="rowIndex">
                     <td v-for="(category, index) in categories" :key="index" class="question-cell">
-                        <button type="button" @click="handleButtonClick(rowIndex, index)" :value="getButtonValue(rowIndex)" class="action-button">{{getButtonValue(rowIndex)}}</button>
+                        <button type="button" @click="handleButtonClick(rowIndex, index, getButtonValue(rowIndex))" class="action-button">{{getButtonValue(rowIndex)}}</button>
                     </td>
                 </tr>
             </tbody>
@@ -25,11 +29,13 @@
 </template>
 
 <script>
+import PlayerInfo from './PlayerInfo.vue';
 import QuestionModal from './QuestionModal.vue';
 
     export default {
         components: {
-            QuestionModal
+            QuestionModal,
+            PlayerInfo
         },
         data() {
             return {
@@ -39,21 +45,46 @@ import QuestionModal from './QuestionModal.vue';
                 sessionToken: null,
                 showModal: false,
                 currentQuestion: {},
+                answeredQuestions: {},
+                players: [
+                    {"name": "Player 1", "score": 0},
+                    {"name": "Player 2", "score": 0},
+                    {"name": "Player 3", "score": 0},
+                ],
+                currentPlayer: 0,
+                gameOver: false,
+                questionValue: null,
             };
         },
         mounted() {
-            this.fetchData(); // Call fetchData when the component is mounted
+            this.fetchData();
         },
         methods: {
-            async handleButtonClick(rowIndex, categoryIndex) {
+            async handleButtonClick(rowIndex, categoryIndex, value) {
                 rowIndex -= 1;
-                console.log(`Category Index: ${categoryIndex} Row Index: ${rowIndex}`);
+                this.questionValue = value;
                 const selectedQuestionObject = this.displayQuestions[categoryIndex][rowIndex];
                 console.log(selectedQuestionObject.question);
                 this.currentQuestion = selectedQuestionObject
                 this.showModal = true;
             },
 
+            handleAnswer(isTrue) {
+                const correctAnswer = this.currentQuestion.correct_answer === 'True';
+
+                if(isTrue === correctAnswer) {
+                    alert('Correct');
+                    this.players[this.currentPlayer].score += this.questionValue;
+                    //
+
+                } else {
+                    alert('Incorrect');
+                    this.players[this.currentPlayer].score -= this.questionValue;
+                    this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+                    //
+                }
+                this.currentQuestion = {};
+            },
 
             async initializeSession() {
                 const tokenResponse = await fetch("https://opentdb.com/api_token.php?command=request");
@@ -72,7 +103,6 @@ import QuestionModal from './QuestionModal.vue';
                             categoryNumbers.push(randomNumber);
                         }
                     }
-                    console.log('Category numbers', categoryNumbers);
 
                     for(const categoryNum of categoryNumbers) {
                         const questions = await this.fetchCategoryQuestions(categoryNum);
@@ -101,7 +131,7 @@ import QuestionModal from './QuestionModal.vue';
                     const data = await response.json();
                     if(data.results.length) {
                         questions.push(data.results[0]);
-                        console.log(`Category: ${data.results[0].category} Question difficulty: ${difficulty}, Question is: ${data.results[0].question}`);
+                        //console.log(`Category: ${data.results[0].category} Question difficulty: ${difficulty}, Question is: ${data.results[0].question}`);
                     }
                     //API allows a request every 5 seconds
                     await this.delay(5000);
