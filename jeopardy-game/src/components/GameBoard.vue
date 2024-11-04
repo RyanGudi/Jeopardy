@@ -37,14 +37,24 @@ import QuestionModal from './QuestionModal.vue';
                 displayQuestions: [],
                 loading: false,
                 sessionToken: null,
-                showModal: true,
-                currentQuestion: {category: "Test", question: "Answer"},
+                showModal: false,
+                currentQuestion: {},
             };
         },
         mounted() {
             this.fetchData(); // Call fetchData when the component is mounted
         },
         methods: {
+            async handleButtonClick(rowIndex, categoryIndex) {
+                rowIndex -= 1;
+                console.log(`Category Index: ${categoryIndex} Row Index: ${rowIndex}`);
+                const selectedQuestionObject = this.displayQuestions[categoryIndex][rowIndex];
+                console.log(selectedQuestionObject.question);
+                this.currentQuestion = selectedQuestionObject
+                this.showModal = true;
+            },
+
+
             async initializeSession() {
                 const tokenResponse = await fetch("https://opentdb.com/api_token.php?command=request");
                 const tokenData = await tokenResponse.json();
@@ -56,7 +66,7 @@ import QuestionModal from './QuestionModal.vue';
                     this.loading = true;
                     await this.initializeSession();
                     let categoryNumbers = [];
-                    while(categoryNumbers.length < 4) {
+                    while(categoryNumbers.length < 2) {
                         const randomNumber = Math.floor(Math.random() * 9) + 20;
                         if(!categoryNumbers.includes(randomNumber) && randomNumber != 21 && randomNumber != 27) {
                             categoryNumbers.push(randomNumber);
@@ -73,8 +83,8 @@ import QuestionModal from './QuestionModal.vue';
                         }
                     }
                     this.loading = false;
-                    console.log(`Display Questions : ${this.displayQuestions}`);
                     console.log(`Categories: ${this.categories}`);
+                    console.log('Display Questions:', JSON.stringify(this.displayQuestions, null, 2));
                 } catch(error) {
                     console.error('Error fetching data', error);
                 }
@@ -111,7 +121,7 @@ import QuestionModal from './QuestionModal.vue';
 <style>
     .jeopardy-table-container {
         padding-top: 1rem;
-        background-color: #f4f4f4;
+        background-color: white;
         display: flex;
         justify-content: center;
         align-items: center;

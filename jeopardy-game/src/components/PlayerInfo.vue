@@ -26,6 +26,7 @@
     }
 
     .players-container {
+        font-family: Arial, sans-serif;
         display: flex;
         justify-content: center;
         gap: 3rem;

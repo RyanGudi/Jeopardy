@@ -4,8 +4,8 @@
             <h2>{{ question.category }}</h2>
             <p>{{ question.question }}</p>
             <div>
-                <button @click="answer(true)">True</button>
-                <button @click="answer(false)">False</button>
+                <button @click="answer(true)" class="btn tbtn">True</button>
+                <button @click="answer(false)" class="btn fbtn">False</button>
             </div>
         </div>
     </div>
@@ -37,21 +37,38 @@
 
 <style scoped>
 .modal {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    padding-top: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 5px;
-  width: 25rem;
-  border: 1px solid black;
+    font-family: Arial, sans-serif;
+    background-color: white;
+    padding: 2rem;
+    border-radius: 5px;
+    width: 60vh;
+    background-color: #0f197b;
+    color: #daa453;
+    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+}
+
+.btn {
+    border: none;
+    color:white;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.tbtn {
+    background-color: green;
+}
+
+.fbtn {
+    background-color: red;
+    margin-left: 0.1rem;
 }
 </style>
