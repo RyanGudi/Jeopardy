@@ -16,16 +16,29 @@
         </div>
     </div>
     <div v-if="loading">Fetching Questions...</div>
+    <QuestionModal
+    :isVisible="showModal"
+    :question="currentQuestion"
+    @close="showModal=false"
+    @answer="handleAnswer"
+    />
 </template>
 
 <script>
+import QuestionModal from './QuestionModal.vue';
+
     export default {
+        components: {
+            QuestionModal
+        },
         data() {
             return {
                 categories: [],
                 displayQuestions: [],
                 loading: false,
-                sessionToken: null
+                sessionToken: null,
+                showModal: true,
+                currentQuestion: {category: "Test", question: "Answer"},
             };
         },
         mounted() {

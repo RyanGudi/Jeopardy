@@ -1,7 +1,6 @@
 <template>
     <div class="modal" v-if="isVisible">
         <div class="modal-content">
-            <span class="close" @click="closeModal">&times</span>
             <h2>{{ question.category }}</h2>
             <p>{{ question.question }}</p>
             <div>
@@ -38,23 +37,21 @@
 
 <style scoped>
 .modal {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: fixed;
-  background-color: rgba(0, 0, 0, 0.5);
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-content {
   background-color: white;
-  padding: 20px;
+  padding: 2rem;
   border-radius: 5px;
-  width: 400px;
-}
-
-.close {
-  cursor: pointer;
-  float: right;
-  font-size: 1.5rem;
+  width: 25rem;
+  border: 1px solid black;
 }
 </style>
