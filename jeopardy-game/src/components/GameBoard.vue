@@ -13,7 +13,14 @@
             <tbody>
                 <tr v-for="rowIndex in 3" :key="rowIndex">
                     <td v-for="(category, index) in categories" :key="index" class="question-cell">
-                        <button type="button" @click="handleButtonClick(rowIndex, index, getButtonValue(rowIndex))" class="action-button">{{getButtonValue(rowIndex)}}</button>
+                        <button
+                            type="button"
+                            @click="handleButtonClick(rowIndex, index, getButtonValue(rowIndex))"
+                            class="action-button"
+                            :disabled="isAnswered(rowIndex, index)"
+                            >
+                            <span v-if="!isAnswered(rowIndex, index)">{{ `$ ${getButtonValue(rowIndex)}` }}</span>
+                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -83,7 +90,17 @@ import QuestionModal from './QuestionModal.vue';
                     this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
                     //
                 }
+
+                // Mark the question as answered
+                const categoryIndex = this.categories.indexOf(this.currentQuestion.category);
+                const questionIndex = this.displayQuestions[categoryIndex].indexOf(this.currentQuestion);
+                this.answeredQuestions[`${questionIndex}-${categoryIndex}`] = true;
+
                 this.currentQuestion = {};
+                this.showModal = false;
+            },
+            isAnswered(rowIndex, categoryIndex) {
+                return !!this.answeredQuestions[`${rowIndex - 1}-${categoryIndex}`];
             },
 
             async initializeSession() {
