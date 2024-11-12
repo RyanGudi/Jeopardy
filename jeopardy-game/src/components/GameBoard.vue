@@ -28,21 +28,29 @@
     </div>
     <div v-if="loading">Fetching Questions...</div>
     <QuestionModal
-    :isVisible="showModal"
-    :question="currentQuestion"
-    @close="showModal=false"
-    @answer="handleAnswer"
+        :isVisible="showModal"
+        :question="currentQuestion"
+        @close="showModal=false"
+        @answer="handleAnswer"
+    />
+    <DoubleJeopardyModal
+        :isVisible="showWagerModal"
+        :maxWager="Math.max(questionValue, players[currentPlayer].score)"
+        @confirm-wager="confirmWager"
+        @close="showWagerModal=false"
     />
 </template>
 
 <script>
+import DoubleJeopardyModal from './DoubleJeopardyModal.vue';
 import PlayerInfo from './PlayerInfo.vue';
 import QuestionModal from './QuestionModal.vue';
 
     export default {
         components: {
             QuestionModal,
-            PlayerInfo
+            PlayerInfo,
+            DoubleJeopardyModal
         },
         data() {
             return {
@@ -61,10 +69,14 @@ import QuestionModal from './QuestionModal.vue';
                 currentPlayer: 0,
                 gameOver: false,
                 questionValue: null,
+                showWagerModal:false,
+                wagerAmount: 0,
+                doubleJeopardyCells: [],
             };
         },
         mounted() {
             this.fetchData();
+            this.setDoubleJeopardyCells();
         },
         computed: {
             allQuestionsAnswered() {
@@ -73,12 +85,42 @@ import QuestionModal from './QuestionModal.vue';
         },
 
         methods: {
+            setDoubleJeopardyCells() {
+                this.doubleJeopardyCells = [];
+                while (this.doubleJeopardyCells.length < 2) {
+                    const row = Math.floor(Math.random() * 3);
+                    const col = Math.floor(Math.random() * this.categories.length);
+                    const cellKey = `${row}-${col}`;
+                    if (!this.doubleJeopardyCells.includes(cellKey)) {
+                    this.doubleJeopardyCells.push(cellKey);
+                    }
+                }
+                //console.log("Double Jeopardy Cells: ", this.doubleJeopardyCells);
+            },
+
+            isDoubleJeopardy(rowIndex, categoryIndex) {
+                return this.doubleJeopardyCells.includes(`${rowIndex}-${categoryIndex}`);
+            },
+
             async handleButtonClick(rowIndex, categoryIndex, value) {
                 rowIndex -= 1;
                 this.questionValue = value;
                 const selectedQuestionObject = this.displayQuestions[categoryIndex][rowIndex];
-                console.log(selectedQuestionObject.question);
+                //console.log(selectedQuestionObject.question);
                 this.currentQuestion = selectedQuestionObject
+
+                if (this.isDoubleJeopardy(rowIndex, categoryIndex)) {
+                    //console.log("Double Jeopardy cell clicked!");
+                    this.showWagerModal = true;
+                } else {
+                    this.wagerAmount = value;
+                    this.showModal = true;
+                }
+            },
+
+            confirmWager(wager) {
+                this.wagerAmount = wager;
+                this.showWagerModal = false;
                 this.showModal = true;
             },
             
@@ -96,12 +138,12 @@ import QuestionModal from './QuestionModal.vue';
 
                 if(isTrue === correctAnswer) {
                     alert('Correct');
-                    this.players[this.currentPlayer].score += this.questionValue;
+                    this.players[this.currentPlayer].score += this.wagerAmount;
                     //
 
                 } else {
                     alert('Incorrect');
-                    this.players[this.currentPlayer].score -= this.questionValue;
+                    this.players[this.currentPlayer].score -= this.wagerAmount;
                     this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
                     //
                 }
@@ -151,8 +193,8 @@ import QuestionModal from './QuestionModal.vue';
                         }
                     }
                     this.loading = false;
-                    console.log(`Categories: ${this.categories}`);
-                    console.log('Display Questions:', JSON.stringify(this.displayQuestions, null, 2));
+                    //console.log(`Categories: ${this.categories}`);
+                    //console.log('Display Questions:', JSON.stringify(this.displayQuestions, null, 2));
                 } catch(error) {
                     console.error('Error fetching data', error);
                 }
