@@ -27,6 +27,14 @@
         </div>
     </div>
     <div v-if="loading">Fetching Questions...</div>
+    <FinalJeopardyModal
+        v-if="finalJeopardyActive"
+        :category="finalCategory"
+        :players="eligiblePlayers"
+        :question="finalJeopardyQuestion"
+        @submit-wager="submitWager"
+        @submit-answer="submitFinalAnswer"
+    />
     <QuestionModal
         :isVisible="showModal"
         :question="currentQuestion"
@@ -43,6 +51,7 @@
 
 <script>
 import DoubleJeopardyModal from './DoubleJeopardyModal.vue';
+import FinalJeopardyModal from './FinalJeopardyModal.vue';
 import PlayerInfo from './PlayerInfo.vue';
 import QuestionModal from './QuestionModal.vue';
 
@@ -50,7 +59,8 @@ import QuestionModal from './QuestionModal.vue';
         components: {
             QuestionModal,
             PlayerInfo,
-            DoubleJeopardyModal
+            DoubleJeopardyModal,
+            FinalJeopardyModal
         },
         data() {
             return {
@@ -62,9 +72,9 @@ import QuestionModal from './QuestionModal.vue';
                 currentQuestion: {},
                 answeredQuestions: {},
                 players: [
-                    {"name": "Player 1", "score": 0},
-                    {"name": "Player 2", "score": 0},
-                    {"name": "Player 3", "score": 0},
+                { name: 'Player 1', score: 0, wager: 0, finalAnswer: null },
+                { name: 'Player 2', score: 0, wager: 0, finalAnswer: null },
+                { name: 'Player 3', score: 0, wager: 0, finalAnswer: null }
                 ],
                 currentPlayer: 0,
                 gameOver: false,
@@ -72,6 +82,10 @@ import QuestionModal from './QuestionModal.vue';
                 showWagerModal:false,
                 wagerAmount: 0,
                 doubleJeopardyCells: [],
+                finalJeopardyActive: false,
+                finalCategory: '',
+                finalJeopardyQuestion: null,
+                eligiblePlayers: [],
             };
         },
         mounted() {
@@ -158,7 +172,7 @@ import QuestionModal from './QuestionModal.vue';
 
                 //Check if all questions have been answered
                 if (this.allQuestionsAnswered && !this.gameOver) {
-                    this.declareWinner();
+                    this.startFinalJeopardy();
                 }
             },
 
@@ -223,6 +237,63 @@ import QuestionModal from './QuestionModal.vue';
             },
             getButtonValue(rowIndex) {
                 return (rowIndex) * 100;
+            },
+                
+            async startFinalJeopardy() {
+                this.finalJeopardyActive = true;
+                this.eligiblePlayers = this.players.filter(player => player.score > 0);
+
+                if (this.eligiblePlayers.length === 0) {
+                    alert('All players have $0 or less. Game over, no winners!');
+                    this.gameOver = true;
+                    return;
+                } else if (this.eligiblePlayers.length === 1) {
+                    alert(`${this.eligiblePlayers[0].name} wins by default with $${this.eligiblePlayers[0].score}!`);
+                    this.gameOver = true;
+                    return;
+                }
+
+                // Pick random category and fetch Final Jeopardy question
+                const categoryNum = Math.floor(Math.random() * 9) + 20;
+                //this.finalCategory = this.categories[Math.floor(Math.random() * this.categories.length)];
+                
+                this.finalJeopardyQuestion = await this.fetchFinalJeopardyQuestion(categoryNum);
+                this.finalCategory = this.finalJeopardyQuestion.category;
+            },
+            async fetchFinalJeopardyQuestion(category) {
+                const apiUrl = `https://opentdb.com/api.php?amount=1&category=${category}&difficulty=hard&type=multiple&token=${this.sessionToken}`;
+                let question = null;
+                while (!question) {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    if (data.results && data.results.length) {
+                        question = data.results[0];
+                    } else {
+                        console.log("No valid question returned, retrying...");
+                    }
+
+                    if (!question) {
+                        console.log("No question returned, retrying...");
+                    }
+                    await this.delay(5000);
+                }
+            },
+
+            submitWager(playerIndex, wager) {
+                this.players[playerIndex].wager = wager;
+            },
+
+            submitFinalAnswer(playerIndex, answer) {
+                this.players[playerIndex].finalAnswer = answer;
+                this.calculateFinalScores();
+            },
+            
+            calculateFinalScores() {
+                this.players.forEach(player => {
+                    const isCorrect = player.finalAnswer === this.finalJeopardyQuestion.correct_answer;
+                    player.score += isCorrect ? player.wager : -player.wager;
+                });
+                this.declareWinner();
             }
         }
     }
