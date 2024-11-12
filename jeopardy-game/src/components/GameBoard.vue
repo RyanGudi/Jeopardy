@@ -19,7 +19,7 @@
                             class="action-button"
                             :disabled="isAnswered(rowIndex, index)"
                             >
-                            <span v-if="!isAnswered(rowIndex, index)">{{ `$ ${getButtonValue(rowIndex)}` }}</span>
+                            <span v-if="!isAnswered(rowIndex, index)">{{ `$${getButtonValue(rowIndex)}` }}</span>
                         </button>
                     </td>
                 </tr>
@@ -66,6 +66,12 @@ import QuestionModal from './QuestionModal.vue';
         mounted() {
             this.fetchData();
         },
+        computed: {
+            allQuestionsAnswered() {
+                return this.categories.length * 3 === Object.keys(this.answeredQuestions).length;
+            }
+        },
+
         methods: {
             async handleButtonClick(rowIndex, categoryIndex, value) {
                 rowIndex -= 1;
@@ -74,6 +80,15 @@ import QuestionModal from './QuestionModal.vue';
                 console.log(selectedQuestionObject.question);
                 this.currentQuestion = selectedQuestionObject
                 this.showModal = true;
+            },
+            
+            declareWinner() {
+                const winner = this.players.reduce((topPlayer, player) => {
+                    return player.score > topPlayer.score ? player : topPlayer;
+                }, this.players[0]);
+
+                alert(`Game Over! ${winner.name} wins with ${winner.score} dollars!`);
+                this.gameOver = true;
             },
 
             handleAnswer(isTrue) {
@@ -98,7 +113,13 @@ import QuestionModal from './QuestionModal.vue';
 
                 this.currentQuestion = {};
                 this.showModal = false;
+
+                //Check if all questions have been answered
+                if (this.allQuestionsAnswered && !this.gameOver) {
+                    this.declareWinner();
+                }
             },
+
             isAnswered(rowIndex, categoryIndex) {
                 return !!this.answeredQuestions[`${rowIndex - 1}-${categoryIndex}`];
             },
